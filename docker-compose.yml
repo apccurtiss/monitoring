@@ -25,38 +25,27 @@ services:
     links:
       - cadvisor:cadvisor
       - alertmanager:alertmanager
-#      - pushgateway:pushgateway
     depends_on:
       - cadvisor
-#      - pushgateway
     networks:
       - back-tier
     restart: always
-#    deploy:
-#      placement:
-#        constraints:
-#          - node.hostname == ${HOSTNAME}
 
   node-exporter:
     image: quay.io/prometheus/node-exporter:latest
+    pid: host
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-      - /:/host:ro,rslave
+      - '/:/host:ro'
+      - '/proc:/host/proc:ro'
+      - '/sys:/host/sys:ro'
     command: 
       - '--path.rootfs=/host'
       - '--path.procfs=/host/proc' 
       - '--path.sysfs=/host/sys'
-      - --collector.filesystem.ignored-mount-points
-      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
     ports:
       - 9100:9100
     networks:
       - back-tier
-    restart: always
-    deploy:
-      mode: global
 
   alertmanager:
     image: prom/alertmanager
@@ -70,10 +59,7 @@ services:
     command:
       - '--config.file=/etc/alertmanager/config.yml'
       - '--storage.path=/alertmanager'
-#    deploy:
-#      placement:
-#        constraints:
-#          - node.hostname == ${HOSTNAME}
+
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
     volumes:
